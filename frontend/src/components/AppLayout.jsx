@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppShell, Burger, Group, Title, NavLink } from '@mantine/core';
+import { AppShell, Burger, Group, Title, NavLink, Avatar } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Link } from 'react-router-dom';
 import { ColorSchemeToggle } from './ColorSchemeToggle';
@@ -19,7 +19,15 @@ const AppLayout = ({ children }) => {
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Title order={3}>AssemblyOS</Title>
           </Group>
-          <ColorSchemeToggle />
+          <Group>
+            <ColorSchemeToggle />
+            <Avatar 
+              src={localStorage.getItem('profileImageUrl')} 
+              alt="User Profile" 
+              radius="xl" 
+              style={{ cursor: 'pointer' }}
+            />
+          </Group>
         </Group>
       </AppShell.Header>
 

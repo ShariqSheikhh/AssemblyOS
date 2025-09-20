@@ -64,11 +64,16 @@ const AuthPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#1A1B1E' }}>
-      <div style={{ width: '50%' }}>
-        {/* Empty side for image/animation */}
-      </div>
-      <div style={{ width: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ 
+      display: 'flex', 
+      minHeight: '100vh', 
+      backgroundImage: 'url("/background.jpg")', 
+      backgroundSize: 'cover', 
+      backgroundPosition: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      backgroundBlendMode: 'darken'
+    }}>
+      <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Paper withBorder shadow="md" p={30} radius="md" style={{ width: '100%', maxWidth: '420px' }}>
           <Title ta="center" order={2}>
             {view === 'signIn' ? 'Access Your Account' : 'Sign Up to Explore'}
