@@ -1,43 +1,42 @@
 const pool = require('../config/db.config');
 
 exports.createProduct = async (req, res) => {
-  // is_product will be true, components is an array like [{ item_id: 1, quantity: 4, step: 1}, ...]
+  
   const { name, quantity_in_stock, is_product, components } = req.body;
 
-  const client = await pool.connect(); // Get a client from the connection pool
-
+  const client = await pool.connect(); 
   try {
-    // Start a transaction
+    
     await client.query('BEGIN');
 
-    // Insert the new product into the 'items' table and get its new ID
+    
     const productQuery = 'INSERT INTO items (name, quantity_in_stock, is_product) VALUES ($1, $2, $3) RETURNING item_id';
     const productResult = await client.query(productQuery, [name, quantity_in_stock, is_product]);
     const newProductId = productResult.rows[0].item_id;
 
-    // Now, loop through the components and insert them into the 'bom_components' table
+  
     for (const component of components) {
       const bomQuery = 'INSERT INTO bom_components (product_id, component_id, quantity_required, step_order) VALUES ($1, $2, $3, $4)';
       await client.query(bomQuery, [newProductId, component.item_id, component.quantity_required, component.step_order]);
     }
 
-    // If all queries were successful, commit the transaction
+   
     await client.query('COMMIT');
 
     res.status(201).json({ message: 'Product and BOM created successfully!', productId: newProductId });
 
   } catch (error) {
-    // If any query fails, roll back the transaction
+    
     await client.query('ROLLBACK');
     console.error(error.message);
     res.status(500).send('Server error during transaction');
   } finally {
-    // Release the client back to the pool
+    
     client.release();
   }
 };
 
-// Controller for dashboard analytics
+
 exports.getDashboardStats = async (req, res) => {
   try {
     const totalProductsResult = await pool.query('SELECT COUNT(*) FROM items WHERE is_product = true');
@@ -55,7 +54,7 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-// Controller to get all manufacturable products
+
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await pool.query("SELECT * FROM items WHERE is_product = true ORDER BY name");
@@ -66,7 +65,7 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-// Controller to get a list of all items (inventory)
+
 exports.getInventory = async (req, res) => {
   try {
     const inventory = await pool.query("SELECT item_id, name, quantity_in_stock FROM items ORDER BY name");
@@ -77,12 +76,12 @@ exports.getInventory = async (req, res) => {
   }
 };
 
-// Controller to get a single product by its ID, including its BOM
+
 exports.getProductById = async (req, res) => {
   try {
-    const { id } = req.params; // Get the product ID from the URL parameter
+    const { id } = req.params; 
 
-    // First, get the main product details
+    
     const productResult = await pool.query('SELECT * FROM items WHERE item_id = $1 AND is_product = true', [id]);
 
     if (productResult.rows.length === 0) {
@@ -90,8 +89,7 @@ exports.getProductById = async (req, res) => {
     }
     const product = productResult.rows[0];
 
-    // Now, get the components for this product from the BOM
-    // We JOIN with the items table again to get the name and current stock of each component
+    
     const bomResult = await pool.query(
       `SELECT 
         bc.component_id, 
@@ -105,7 +103,7 @@ exports.getProductById = async (req, res) => {
       [id]
     );
 
-    // Combine the results into a single object
+    
     const productWithBOM = {
       ...product,
       components: bomResult.rows

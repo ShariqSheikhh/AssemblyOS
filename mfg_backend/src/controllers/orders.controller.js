@@ -1,6 +1,4 @@
 const pool = require('../config/db.config');
-
-// Create a new manufacturing order
 exports.createOrder = async (req, res) => {
   const { product_id, quantity_to_produce } = req.body;
   try {
@@ -15,10 +13,9 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// Get all manufacturing orders
 exports.getAllOrders = async (req, res) => {
   try {
-    // We JOIN with the items table to get the product name
+    
     const allOrders = await pool.query(
       `SELECT mo.*, i.name AS product_name 
        FROM manufacturing_orders mo
@@ -32,12 +29,12 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// Update the status of a manufacturing order
-exports.updateOrderStatus = async (req, res) => {
-  const { id } = req.params; // The ID of the order to update
-  const { status } = req.body; // The new status
 
-  // Optional: Add validation to ensure status is one of the allowed values
+exports.updateOrderStatus = async (req, res) => {
+  const { id } = req.params; 
+  const { status } = req.body; 
+
+  
   const allowedStatuses = ['Planned', 'In Progress', 'Done', 'Canceled'];
   if (!allowedStatuses.includes(status)) {
     return res.status(400).json({ error: 'Invalid status value.' });
