@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Title, Table, Paper, Badge, Group, Button, Modal, Select, NumberInput, Menu } from '@mantine/core';
+import React,{useState, useEffect } from 'react';
+import { Title, Table, Paper, Badge, Group, Button, Modal, Select, NumberInput, Menu, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconPlus, IconDotsVertical } from '@tabler/icons-react';
 import AppLayout from '../components/AppLayout';
@@ -14,9 +14,11 @@ const OrdersPage = () => {
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
   const [newOrderProduct, setNewOrderProduct] = useState(null);
   const [newOrderQuantity, setNewOrderQuantity] = useState(1);
+  const [feasibility, setFeasibility] = useState(null);
 
   const fetchOrders = async () => {
     try {
+      setLoading(true);
       const response = await apiClient.get('/orders');
       setOrders(response.data);
     } catch (err) {
@@ -28,53 +30,45 @@ const OrdersPage = () => {
 
   useEffect(() => {
     fetchOrders();
-    // Fetch products for the dropdown
     apiClient.get('/products').then(res => {
       const productOptions = res.data.map(p => ({ value: p.item_id.toString(), label: p.name }));
       setProducts(productOptions);
-    }).catch(err => {
-      console.error('Failed to fetch products:', err);
     });
   }, []);
 
   const handleCreateOrder = async () => {
     try {
-      await apiClient.post('/orders', {
+      const response = await apiClient.post('/orders', {
         product_id: parseInt(newOrderProduct),
         quantity_to_produce: newOrderQuantity
       });
-      notifications.show({ title: 'Success', message: 'Manufacturing order created!', color: 'green' });
-      closeModal();
-      // Reset form
-      setNewOrderProduct(null);
-      setNewOrderQuantity(1);
-      fetchOrders();
+
+      if (response.data.feasibility.isFeasible) {
+        notifications.show({ title: 'Success', message: 'Manufacturing order created!', color: 'green' });
+        closeModalAndReset();
+        fetchOrders();
+      }
     } catch (error) {
-      console.error('Error creating order:', error);
-      notifications.show({ 
-        title: 'Error', 
-        message: error.response?.data?.message || 'Failed to create order.', 
-        color: 'red' 
-      });
+      const feasibilityData = error.response?.data?.feasibility;
+      setFeasibility(feasibilityData);
+      notifications.show({ title: 'Order Not Feasible', message: 'Insufficient stock for one or more components.', color: 'red' });
     }
+  };
+
+  const closeModalAndReset = () => {
+    closeModal();
+    setFeasibility(null);
+    setNewOrderProduct(null);
+    setNewOrderQuantity(1);
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await apiClient.put(`/orders/${orderId}`, { status: newStatus });
-      notifications.show({ 
-        title: 'Success', 
-        message: `Order ${orderId} status updated to ${newStatus}.`, 
-        color: 'blue' 
-      });
+      notifications.show({ title: 'Success', message: `Order ${orderId} status updated.`, color: 'blue' });
       fetchOrders();
     } catch (error) {
-      console.error('Error updating status:', error);
-      notifications.show({ 
-        title: 'Error', 
-        message: error.response?.data?.message || 'Failed to update status.', 
-        color: 'red' 
-      });
+      notifications.show({ title: 'Error', message: 'Failed to update status.', color: 'red' });
     }
   };
 
@@ -92,6 +86,11 @@ const OrdersPage = () => {
     <Table.Tr key={order.order_id}>
       <Table.Td>{order.order_id}</Table.Td>
       <Table.Td>{order.product_name}</Table.Td>
+      <Table.Td>
+        <Text fw={700} c={order.quantity_on_hand > 0 ? 'green' : 'red'}>
+          {order.quantity_on_hand}
+        </Text>
+      </Table.Td>
       <Table.Td>{order.quantity_to_produce}</Table.Td>
       <Table.Td>
         <Badge color={getStatusColor(order.status)}>{order.status}</Badge>
@@ -104,26 +103,9 @@ const OrdersPage = () => {
           </Menu.Target>
           <Menu.Dropdown>
             <Menu.Label>Update Status</Menu.Label>
-            <Menu.Item 
-              onClick={() => handleStatusChange(order.order_id, 'In Progress')}
-              disabled={order.status === 'In Progress'}
-            >
-              In Progress
-            </Menu.Item>
-            <Menu.Item 
-              onClick={() => handleStatusChange(order.order_id, 'Done')}
-              disabled={order.status === 'Done' || order.status === 'Canceled'}
-            >
-              Done
-            </Menu.Item>
-            <Menu.Divider />
-            <Menu.Item 
-              color="red" 
-              onClick={() => handleStatusChange(order.order_id, 'Canceled')}
-              disabled={order.status === 'Canceled' || order.status === 'Done'}
-            >
-              Cancel
-            </Menu.Item>
+            <Menu.Item onClick={() => handleStatusChange(order.order_id, 'In Progress')}>In Progress</Menu.Item>
+            <Menu.Item onClick={() => handleStatusChange(order.order_id, 'Done')}>Done</Menu.Item>
+            <Menu.Item color="red" onClick={() => handleStatusChange(order.order_id, 'Canceled')}>Canceled</Menu.Item>
           </Menu.Dropdown>
         </Menu>
       </Table.Td>
@@ -132,76 +114,56 @@ const OrdersPage = () => {
 
   return (
     <AppLayout>
-      {/* New Order Modal */}
-      <Modal opened={modalOpened} onClose={closeModal} title="Create Manufacturing Order">
-        <Select 
-          label="Product" 
-          placeholder="Select a product" 
-          data={products} 
-          value={newOrderProduct} 
-          onChange={setNewOrderProduct} 
-          searchable 
-          required
-          mt="md"
-        />
-        <NumberInput 
-          label="Quantity to Produce" 
-          value={newOrderQuantity} 
-          onChange={setNewOrderQuantity} 
-          min={1} 
-          mt="md"
-          required
-        />
-        <Button 
-          fullWidth 
-          onClick={handleCreateOrder} 
-          mt="xl"
-          disabled={!newOrderProduct || !newOrderQuantity}
-          loading={loading}
-        >
-          Create Order
-        </Button>
+      <Modal opened={modalOpened} onClose={closeModalAndReset} title="Create Manufacturing Order">
+        <Select label="Product" placeholder="Select a product" data={products} value={newOrderProduct} onChange={setNewOrderProduct} searchable />
+        <NumberInput label="Quantity to Produce" value={newOrderQuantity} onChange={setNewOrderQuantity} min={1} mt="md" />
+        
+        {feasibility && (
+          <Paper p="md" mt="lg" withBorder>
+            <Text fw={700} c={feasibility.isFeasible ? 'green' : 'red'}>
+              {feasibility.isFeasible ? 'Order is Feasible' : 'Order Not Feasible'}
+            </Text>
+            <List spacing="xs" size="sm" mt="xs">
+              {feasibility.details.map(detail => (
+                <List.Item
+                  key={detail.name}
+                  icon={
+                    detail.isAvailable ? <ThemeIcon color="green" size={20} radius="xl"><IconCircleCheck size={14} /></ThemeIcon>
+                    : <ThemeIcon color="red" size={20} radius="xl"><IconCircleX size={14} /></ThemeIcon>
+                  }
+                >
+                  {detail.name} (Required: {detail.required}, Available: {detail.available})
+                </List.Item>
+              ))}
+            </List>
+          </Paper>
+        )}
+
+        <Button fullWidth onClick={handleCreateOrder} mt="xl">Create Order</Button>
       </Modal>
 
       <Group justify="space-between" mb="lg">
         <Title order={2}>Manufacturing Orders</Title>
-        <Button 
-          onClick={openModal} 
-          leftSection={<IconPlus size={16} />}
-          loading={loading}
-        >
+        <Button onClick={openModal} leftSection={<IconPlus size={16} />}>
           New Order
         </Button>
       </Group>
 
       <Paper withBorder shadow="sm" p="md" radius="md">
-        {loading && <p>Loading orders...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {!loading && !error && (
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Order ID</Table.Th>
-                <Table.Th>Product</Table.Th>
-                <Table.Th>Quantity</Table.Th>
-                <Table.Th>Status</Table.Th>
-                <Table.Th>Date Created</Table.Th>
-                <Table.Th>Actions</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {rows.length > 0 ? (
-                rows
-              ) : (
-                <Table.Tr>
-                  <Table.Td colSpan={6} style={{ textAlign: 'center' }}>
-                    No manufacturing orders found.
-                  </Table.Td>
-                </Table.Tr>
-              )}
-            </Table.Tbody>
-          </Table>
-        )}
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Order ID</Table.Th>
+              <Table.Th>Product</Table.Th>
+              <Table.Th>Qty On Hand</Table.Th>
+              <Table.Th>Order Qty</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Date Created</Table.Th>
+              <Table.Th>Actions</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>{rows.length > 0 ? rows : <Table.Tr><Table.Td colSpan={7}>No manufacturing orders found.</Table.Td></Table.Tr>}</Table.Tbody>
+        </Table>
       </Paper>
     </AppLayout>
   );

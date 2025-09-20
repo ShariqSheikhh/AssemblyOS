@@ -23,6 +23,8 @@ const AppLayout = ({ children }) => {
         <NavLink label="Dashboard" component={Link} to="/dashboard" />
         <NavLink label="Manufacturing Orders" component={Link} to="/orders" />
         <NavLink label="Add New Product" component={Link} to="/add-product" />
+        <NavLink label="Stock Ledger" component={Link} to="/stock-ledger" />
+        <NavLink label="Work Centers" component={Link} to="/work-centers" />
       </AppShell.Navbar>
 
       <AppShell.Main>{children}</AppShell.Main>

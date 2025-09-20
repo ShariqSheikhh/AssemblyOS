@@ -5,6 +5,8 @@ import DashboardPage from './pages/DashboardPage';
 import AddProductPage from './pages/AddProductPage';
 import ProductionCentrePage from './pages/ProductionCentrePage';
 import OrdersPage from './pages/OrdersPage';
+import StockLedgerPage from './pages/StockLedgerPage';
+import WorkCentersPage from './pages/WorkCentersPage';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
       <Route path="/add-product" element={<AddProductPage />} />
       <Route path="/product/:id" element={<ProductionCentrePage />} />
       <Route path="/orders" element={<OrdersPage />} />
+      <Route path="/stock-ledger" element={<StockLedgerPage />} />
+      <Route path="/work-centers" element={<WorkCentersPage />} />
     </Routes>
   );
 }
