@@ -21,6 +21,7 @@ const AppLayout = ({ children }) => {
 
       <AppShell.Navbar p="md">
         <NavLink label="Dashboard" component={Link} to="/dashboard" />
+        <NavLink label="Manufacturing Orders" component={Link} to="/orders" />
         <NavLink label="Add New Product" component={Link} to="/add-product" />
       </AppShell.Navbar>
 

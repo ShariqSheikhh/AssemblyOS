@@ -37,6 +37,24 @@ exports.createProduct = async (req, res) => {
   }
 };
 
+// Controller for dashboard analytics
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const totalProductsResult = await pool.query('SELECT COUNT(*) FROM items WHERE is_product = true');
+    const totalInventoryResult = await pool.query('SELECT COUNT(*) FROM items');
+    const lowStockResult = await pool.query('SELECT COUNT(*) FROM items WHERE is_product = false AND quantity_in_stock < 50');
+
+    res.status(200).json({
+      totalProducts: parseInt(totalProductsResult.rows[0].count),
+      totalInventoryItems: parseInt(totalInventoryResult.rows[0].count),
+      lowStockItems: parseInt(lowStockResult.rows[0].count),
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server error');
+  }
+};
+
 // Controller to get all manufacturable products
 exports.getAllProducts = async (req, res) => {
   try {

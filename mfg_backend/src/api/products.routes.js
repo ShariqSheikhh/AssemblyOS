@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { createProduct, getAllProducts, getInventory, getProductById, produceProduct } = require('../controllers/products.controller'); // <-- Update this line
+const { createProduct, getAllProducts, getInventory, getProductById, produceProduct, getDashboardStats } = require('../controllers/products.controller'); // <-- Update this line
 const authMiddleware = require('../middleware/auth.middleware');
 
 // When a POST request is made to '/', we first run the authMiddleware.
@@ -13,6 +13,9 @@ router.get('/', authMiddleware, getAllProducts); // <-- Add this line
 
 // GET route to fetch all inventory items
 router.get('/inventory', authMiddleware, getInventory); // <-- Add this line
+
+// GET route for dashboard stats (place before dynamic ID route)
+router.get('/stats', authMiddleware, getDashboardStats);
 
 // GET route to fetch a single product by its ID
 // The ':id' is a URL parameter
