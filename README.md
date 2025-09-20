@@ -60,9 +60,4 @@ It replaces fragmented spreadsheets and manual tracking with a **centralized, us
 
 ---
 
-## ⚡ Getting Started
 
-### 1️⃣ Clone Repository
-```bash
-git clone https://github.com/your-org/assemblyos.git
-cd assemblyos
