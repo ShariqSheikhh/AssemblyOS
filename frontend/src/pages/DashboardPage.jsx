@@ -74,7 +74,7 @@ const DashboardPage = () => {
       </SimpleGrid>
 
       <Group justify="space-between" mb="md">
-        <Title order={3}>Products List</Title>
+        <Title order={3}>Product Work Orders</Title>
         {/* 3. Add the search input field */}
         <TextInput
           placeholder="Search by product name..."
