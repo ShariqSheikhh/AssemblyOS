@@ -44,11 +44,9 @@ AssemblyOS is a full-stack manufacturing management application built from the g
 
 ## 📸 Screenshots
 
-*(You should take your own screenshots and place them in a folder named `screenshots` inside your main project folder, then update the paths below)*
-
 | Login Page | Dashboard |
 | :---: | :---: |
-| ![Login Page](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
+| ![Login Page]("C:\Users\Shariq Sheikh\OneDrive\Pictures\Screenshots\login.png") | ![Dashboard](screenshots/dashboard.png) |
 | **Manufacturing Orders** | **Production Centre** |
 | ![Orders Page](screenshots/orders.png) | ![Production Page](screenshots/production.png) |
 
