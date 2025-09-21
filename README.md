@@ -68,7 +68,7 @@ To get a local copy up and running, follow these simple steps.
         DB_USER=postgres
         DB_HOST=localhost
         DB_DATABASE=manufacturing_db
-        DB_PASSWORD=YOUR_POSTGRES_PASSWORD
+        DB_PASSWORD=******
         DB_PORT=5432
         JWT_SECRET=YOUR_SUPER_SECRET_KEY
         ```
