@@ -6,15 +6,18 @@ const jwt = require('jsonwebtoken'); // <-- Add this import
 
 // The function to handle user registration
 exports.register = async (req, res) => {
-  // Destructure name, email, and password from the request body
-  const { name, email, password } = req.body;
+  const { username, email, password } = req.body;
+
+  if (!username || username.length < 6 || username.length > 12) {
+    return res.status(400).json({ error: 'Username must be between 6 and 12 characters.' });
+  }
 
   try {
     // Check if user already exists
-    const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const userExists = await pool.query('SELECT * FROM users WHERE email = $1 OR username = $2', [email, username]);
 
     if (userExists.rows.length > 0) {
-      return res.status(400).json({ error: 'Email already in use.' });
+      return res.status(400).json({ error: 'Email or username already in use.' });
     }
 
     // Hash the password
@@ -23,8 +26,8 @@ exports.register = async (req, res) => {
 
     // Insert the new user into the database
     const newUser = await pool.query(
-      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING user_id, email',
-      [name, email, passwordHash]
+      'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING user_id, email, username',
+      [username, email, passwordHash]
     );
 
     // Send a success response

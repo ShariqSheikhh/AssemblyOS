@@ -1,113 +1,199 @@
-import React, { useState } from 'react';
+import React from 'react';
 import axios from 'axios';
-import { TextInput, Button, Paper, Title, Text, Group, SegmentedControl } from '@mantine/core';
+import { 
+  TextInput, 
+  Button, 
+  Paper, 
+  Title, 
+  Text, 
+  Group, 
+  SegmentedControl,
+  PasswordInput,
+  Container,
+  Stack,
+  LoadingOverlay
+} from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const [view, setView] = useState('signIn'); // 'signIn' or 'signUp'
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [view, setView] = React.useState('signIn');
+  
+  const form = useForm({
+    initialValues: {
+      email: '',
+      password: '',
+      username: '',
+      confirmPassword: '',
+    },
+    validate: {
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
+      password: (value) => {
+        if (view === 'signUp') {
+          if (value.length < 8) return 'Password must be at least 8 characters';
+          if (!/[A-Z]/.test(value)) return 'Password must include uppercase letter';
+          if (!/[a-z]/.test(value)) return 'Password must include lowercase letter';
+          if (!/[0-9]/.test(value)) return 'Password must include number';
+          if (!/[^A-Za-z0-9]/.test(value)) return 'Password must include special character';
+        }
+        return null;
+      },
+      username: (value) => {
+        if (view === 'signUp') {
+          if (!value) return 'Username is required';
+          if (value.length < 6 || value.length > 12) return 'Username must be between 6-12 characters';
+        }
+        return null;
+      },
+      confirmPassword: (value, values) => 
+        view === 'signUp' && value !== values.password ? 'Passwords do not match' : null,
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (view === 'signIn') {
-      try {
-        const response = await axios.post('http://localhost:3000/api/users/login', { email, password });
-        localStorage.setItem('token', response.data.token); // Save the token
-        notifications.show({
-          title: 'Login Successful!',
-          message: 'Redirecting to your dashboard...',
-          color: 'green',
+  const handleSubmit = async (values) => {
+    try {
+      setIsLoading(true);
+      
+      if (view === 'signIn') {
+        const response = await axios.post('http://localhost:3000/api/users/login', {
+          email: values.email,
+          password: values.password
         });
-        navigate('/dashboard'); // Redirect to dashboard
-      } catch (error) {
-        notifications.show({
-          title: 'Login Failed',
-          message: error.response?.data?.error || 'An unknown server error occurred.',
-          color: 'red',
+
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          const decodedToken = jwtDecode(response.data.token);
+          localStorage.setItem('userRole', decodedToken.role || 'user');
+
+          notifications.show({
+            title: 'Success',
+            message: 'Login successful!',
+            color: 'green'
+          });
+
+          navigate('/dashboard');
+        }
+      } else {
+        // Registration validation
+        if (!values.username || values.username.length < 6 || values.username.length > 12) {
+          notifications.show({
+            title: 'Error',
+            message: 'Username must be between 6 and 12 characters',
+            color: 'red'
+          });
+          return;
+        }
+
+        if (values.password !== values.confirmPassword) {
+          notifications.show({
+            title: 'Error',
+            message: 'Passwords do not match',
+            color: 'red'
+          });
+          return;
+        }
+
+        const response = await axios.post('http://localhost:3000/api/users/register', {
+          username: values.username,
+          email: values.email,
+          password: values.password
         });
+
+        if (response.data) {
+          notifications.show({
+            title: 'Success',
+            message: 'Account created successfully! Please sign in.',
+            color: 'green'
+          });
+          setView('signIn');
+          form.reset();
+        }
       }
-    } else {
-      if (password !== confirmPassword) {
-        notifications.show({
-          title: 'Error',
-          message: 'Passwords do not match!',
-          color: 'red',
-        });
-        return;
-      }
-      try {
-        await axios.post('http://localhost:3000/api/users/register', {
-          name: `${firstName} ${lastName}`,
-          email,
-          password,
-        });
-        notifications.show({
-          title: 'Registration Successful!',
-          message: 'You can now sign in with your new account.',
-          color: 'green',
-        });
-        setView('signIn');
-      } catch (error) {
-        notifications.show({
-          title: 'Registration Failed',
-          message: error.response?.data?.error || 'An unknown server error occurred.',
-          color: 'red',
-        });
-      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.error || 'An unexpected error occurred',
+        color: 'red'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#1A1B1E' }}>
-      <div style={{ width: '50%' }}>
-        {/* Empty side for image/animation */}
-      </div>
-      <div style={{ width: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Paper withBorder shadow="md" p={30} radius="md" style={{ width: '100%', maxWidth: '420px' }}>
-          <Title ta="center" order={2}>
-            {view === 'signIn' ? 'Access Your Account' : 'Sign Up to Explore'}
-          </Title>
-          <Text c="dimmed" size="sm" ta="center" mt={5}>
-            {view === 'signIn' ? 'Welcome back!' : 'Create an account to get started.'}
-          </Text>
+    <Container size={420} my={40}>
+      <Paper withBorder shadow="md" p={30} mt={30} radius="md" pos="relative">
+        <LoadingOverlay visible={isLoading} />
+        
+        <Title ta="center" order={2}>
+          {view === 'signIn' ? 'Welcome Back' : 'Create Account'}
+        </Title>
+        
+        <Text c="dimmed" size="sm" ta="center" mt={5}>
+          {view === 'signIn' ? 'Login to your account' : 'Register a new account'}
+        </Text>
 
-          <SegmentedControl
-            fullWidth
-            value={view}
-            onChange={setView}
-            data={[
-              { label: 'Sign In', value: 'signIn' },
-              { label: 'Sign Up', value: 'signUp' },
-            ]}
-            mt="xl"
-            color="violet"
-          />
+        <SegmentedControl
+          fullWidth
+          value={view}
+          onChange={(value) => {
+            setView(value);
+            form.reset();
+          }}
+          data={[
+            { label: 'Sign In', value: 'signIn' },
+            { label: 'Sign Up', value: 'signUp' }
+          ]}
+          mt="xl"
+          color="blue"
+        />
 
-          <form onSubmit={handleSubmit}>
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Stack mt="md">
+            <TextInput
+              required
+              label="Email"
+              placeholder="your@email.com"
+              {...form.getInputProps('email')}
+            />
+
             {view === 'signUp' && (
-              <Group grow>
-                <TextInput label="First Name" placeholder="Your first name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required mt="md" />
-                <TextInput label="Last Name" placeholder="Your last name" value={lastName} onChange={(e) => setLastName(e.target.value)} required mt="md" />
-              </Group>
+              <TextInput
+                required
+                label="Username"
+                placeholder="6-12 characters"
+                {...form.getInputProps('username')}
+              />
             )}
-            <TextInput label="Email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required mt="md" />
-            <TextInput type="password" label="Password" placeholder="Your password" value={password} onChange={(e) => setPassword(e.target.value)} required mt="md" />
+
+            <PasswordInput
+              required
+              label="Password"
+              placeholder="Your password"
+              {...form.getInputProps('password')}
+            />
+
             {view === 'signUp' && (
-              <TextInput type="password" label="Confirm Password" placeholder="Confirm your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required mt="md" />
+              <PasswordInput
+                required
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                {...form.getInputProps('confirmPassword')}
+              />
             )}
-            <Button type="submit" fullWidth mt="xl" color="violet">
-              {view === 'signIn' ? 'Sign In' : 'Sign Up'}
+
+            <Button type="submit" fullWidth mt="xl" color="blue">
+              {view === 'signIn' ? 'Sign In' : 'Create Account'}
             </Button>
-          </form>
-        </Paper>
-      </div>
-    </div>
+          </Stack>
+        </form>
+      </Paper>
+    </Container>
   );
 };
 
