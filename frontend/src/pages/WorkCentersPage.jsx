@@ -30,9 +30,9 @@ const WorkCentersPage = () => {
       <Table.Tr key={center.name}>
         <Table.Td>{center.name}</Table.Td>
         <Table.Td>{hoursWorked.toFixed(2)}</Table.Td>
-        <Table.Td>${costPerHour.toFixed(2)}</Table.Td>
+        <Table.Td>₹{costPerHour.toFixed(2)}</Table.Td>
         <Table.Td>
-          <Text fw={700}>${totalCost.toFixed(2)}</Text>
+          <Text fw={700}>₹{totalCost.toFixed(2)}</Text>
         </Table.Td>
       </Table.Tr>
     );

@@ -1,63 +1,96 @@
-# AssemblyOS
+# AssemblyOS - Manufacturing & Inventory Management 🏭
 
-**AssemblyOS — Your Operating System for Smarter Manufacturing**  
-
-AssemblyOS is a **modular manufacturing management application** that enables businesses to create, track, and manage their end-to-end production process digitally.  
-It replaces fragmented spreadsheets and manual tracking with a **centralized, user-friendly platform**.
+AssemblyOS is a full-stack manufacturing management application built from the ground up. It provides a comprehensive solution for businesses to digitally create, track, and manage their entire production process, from raw material inventory to finished goods. This project replaces fragmented spreadsheets and manual tracking with a centralized, secure, and user-friendly platform.
 
 ---
 
-## 🚀 Features
-- 🔐 **Authentication** (Signup/Login, OTP reset)  
-- 📊 **Dashboard** with filters (Planned, In Progress, Done, Canceled)  
-- 🏭 **Manufacturing Orders (MO)** – create, edit, track production  
-- ⚙️ **Work Orders (WO)** – assign to operators, start/pause/complete workflow  
-- 🖥️ **Work Centers** – manage machines/locations, costing, downtime  
-- 📦 **Stock Ledger** – real-time material in/out, product master  
-- 📑 **Bill of Materials (BoM)** – define recipes of raw materials & operations  
-- 📈 **Analytics & Reports** – KPIs, throughput, utilization, export (PDF/Excel)  
-- 🔄 **Scalable Architecture** – easy to add modules like Quality Check & Maintenance  
+## ✨ Key Features
+
+* **Secure Authentication**: Full user authentication system with registration, login, and a secure "Forgot Password" flow using in-house OTP simulation. Passwords are professionally hashed using **bcryptjs**.
+* **Role-Based Access Control**: Differentiates between user roles (Admin, Producer, etc.) to secure different parts of the application, enforced on both the backend and frontend.
+* **Dynamic Dashboard**: A real-time analytics dashboard with KPI cards for "Total Products," "Inventory Items," and "Low Stock Alerts."
+* **Product Management**: Full CRUD (Create, Read, Update, Delete) functionality for products.
+* **Bill of Materials (BOM)**: A sophisticated system to define product "recipes," including both material components and operational steps (Work Orders) with time requirements.
+* **Manufacturing Orders**: A complete workflow for creating, viewing, and updating the status of production jobs (`Planned`, `In Progress`, `Done`).
+* **Smart Inventory System**:
+    * Calculates **"Quantity Available"** vs. **"Quantity on Hand"** by accounting for stock committed to open orders.
+    * Live feasibility checks to prevent the creation of orders if raw materials are insufficient.
+    * Inventory levels are automatically updated when an order is produced.
+* **Work Center Analytics**: A dedicated page to track the cost and time spent at each production center (Assembly, Painting, Packing).
+* **Polished UI**:
+    * Built with the modern Mantine component library.
+    * Includes a sleek Dark/Light theme switcher.
+    * Interactive tables with live searching and filtering.
 
 ---
 
-## 👥 User Roles
-- **Admin / Business Owner** → Full access, reports, KPIs  
-- **Manufacturing Manager** → Create MOs, assign WOs, track workflow  
-- **Inventory Manager** → Manage stock, raw materials, ledgers  
-- **Operator / Worker** → Execute assigned WOs, update progress  
+## 🛠️ Tech Stack
+
+### Backend
+* **Runtime**: Node.js
+* **Framework**: Express.js
+* **Database**: PostgreSQL
+* **Authentication**: JSON Web Tokens (JWT)
+* **Password Hashing**: bcryptjs
+
+### Frontend
+* **Framework**: React (built with Vite)
+* **UI Library**: Mantine
+* **Routing**: React Router
+* **API Client**: Axios
+* **Styling**: In-house component styling with Mantine
 
 ---
 
-## 🛠️ Tech Stack (Suggested)
-- **Frontend:** React / Next.js + Tailwind CSS  
-- **Backend:** Node.js (Express/Fastify) or Python (FastAPI)  
-- **Database:** PostgreSQL  
-- **Real-time:** WebSockets / Socket.IO  
-- **Auth:** JWT + OTP reset flow  
-- **Reports:** PDF/Excel generation  
+## 📸 Screenshots
+
+*(You should take your own screenshots and place them in a folder named `screenshots` inside your main project folder, then update the paths below)*
+
+| Login Page | Dashboard |
+| :---: | :---: |
+| ![Login Page](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
+| **Manufacturing Orders** | **Production Centre** |
+| ![Orders Page](screenshots/orders.png) | ![Production Page](screenshots/production.png) |
 
 ---
 
-## 📂 Core Modules
-- **Authentication & Profile** – login/signup, profile management  
-- **Dashboard** – dynamic filtering, KPIs  
-- **Manufacturing Orders (MO)** – schedule, assign, track  
-- **Work Orders (WO)** – operator tasks, status updates  
-- **Work Centers** – machines, utilization, costing  
-- **BoM (Bill of Materials)** – recipes for products  
-- **Stock Ledger** – material in/out, finished goods  
-- **Reports & Analytics** – production throughput, delays, exports  
+## 🚀 Getting Started
+
+To get a local copy up and running, follow these simple steps.
+
+### Prerequisites
+* Node.js and npm installed
+* PostgreSQL installed and running
+
+### Installation & Setup
+
+1.  **Clone the repository:**
+    ```sh
+    git clone [https://github.com/ShariqSheikhh/AssemblyOS.git](https://github.com/ShariqSheikhh/AssemblyOS.git)
+    cd AssemblyOS
+    ```
+
+2.  **Backend Setup:**
+    * Navigate to the backend folder: `cd mfg_backend`
+    * Install NPM packages: `npm install`
+    * Connect to PostgreSQL (`psql`) and create your database: `CREATE DATABASE manufacturing_db;`
+    * Create a `.env` file in the `mfg_backend` root and add the following variables:
+        ```env
+        PORT=3000
+        DB_USER=postgres
+        DB_HOST=localhost
+        DB_DATABASE=manufacturing_db
+        DB_PASSWORD=YOUR_POSTGRES_PASSWORD
+        DB_PORT=5432
+        JWT_SECRET=YOUR_SUPER_SECRET_KEY
+        ```
+    * Run the server: `npm start`
+
+3.  **Frontend Setup:**
+    * Open a new terminal and navigate to the frontend folder: `cd frontend`
+    * Install NPM packages: `npm install`
+    * Run the development server: `npm run dev`
+
+The application should now be running, with the frontend on `http://localhost:5173` and the backend on `http://localhost:3000`.
 
 ---
-
-## 🔄 Workflow Example
-1. **Create a BoM** (e.g., Wooden Table → 4 Legs, 1 Top, Screws, Varnish).  
-2. **Create MO** (produce 10 tables) → auto-fetches & scales BoM.  
-3. **Generate WOs** (Assembly, Painting, Packing).  
-4. **Assign to operators** → they start/pause/complete tasks.  
-5. **Stock updates automatically** (raw materials OUT, finished goods IN).  
-6. **Manager checks dashboard** for real-time KPIs and exports reports.  
-
----
-
-
