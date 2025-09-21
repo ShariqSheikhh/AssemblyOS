@@ -3,7 +3,9 @@
 AssemblyOS is a full-stack manufacturing management application built from the ground up. It provides a comprehensive solution for businesses to digitally create, track, and manage their entire production process, from raw material inventory to finished goods. This project replaces fragmented spreadsheets and manual tracking with a centralized, secure, and user-friendly platform.
 
 ---
+## Explaination video link : https://drive.google.com/file/d/1E169zD3p6oGqzC4CLKlelW_ylg6ST2Tp/view?usp=sharing
 
+---
 ## ✨ Key Features
 
 * **Secure Authentication**: Full user authentication system with registration, login, and a secure "Forgot Password" flow using in-house OTP simulation. Passwords are professionally hashed using **bcryptjs**.
